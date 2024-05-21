@@ -20,9 +20,6 @@ from typing import List
 from app.api.endpoints import analyze_sentiment  # Importing the function
 
 
-
-
-
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
