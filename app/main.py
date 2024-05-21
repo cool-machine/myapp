@@ -3,16 +3,25 @@ import warnings
 # Suppress the specific warning from huggingface_hub
 warnings.filterwarnings("ignore", category=FutureWarning, module="huggingface_hub.file_download")
 
+
+import torch
+from torch import nn
 # The rest of your imports
 from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
 import pandas as pd
 import logging
 from typing import List
+
 from app.api.endpoints import analyze_sentiment  # Importing the function
+
+
+
+
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -68,12 +77,15 @@ async def upload_file(file: UploadFile = File(...)):
             warning = ""
 
         return JSONResponse(content={"documents": documents, "warning": warning})
+
     except pd.errors.EmptyDataError:
         logger.error("Uploaded file is empty")
         return JSONResponse(content={"error": "Uploaded file is empty"}, status_code=400)
+
     except pd.errors.ParserError:
         logger.error("Error parsing the uploaded file")
         return JSONResponse(content={"error": "Error parsing the uploaded file"}, status_code=400)
+
     except Exception as e:
         logger.error(f"Error uploading file: {str(e)}", exc_info=True)
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -82,17 +94,18 @@ async def upload_file(file: UploadFile = File(...)):
 @app.post("/analyze")
 async def analyze_text(text_request: TextRequest):
     try:
-        text = text_request
+        
         # Log the received text
-        logger.info(f"Received text: {text}")
+        logger.info(f"Received text: {text_request}")
 
         # Analyze the text (await the async function)
-        sentiment = await analyze_sentiment(text)
+        sentiment = await analyze_sentiment(text_request)
 
         # Log the analysis result
         logger.info(f"Sentiment analysis result: {sentiment}")
 
         return JSONResponse(content={"sentiment": sentiment})
+
     except Exception as e:
         # Log the error details
         logger.error(f"Error analyzing text: {str(e)}", exc_info=True)
